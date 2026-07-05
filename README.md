@@ -17,6 +17,12 @@ Part of the [Simple Eiffel](https://github.com/simple-eiffel) ecosystem.
 
 **Development** — CLI orchestrator (`simple_reel.exe`), render-engine-first pipeline.
 
+## Examples — films made with simple_reel
+
+**[NOUS — Finding the Mind of Christ](https://www.youtube.com/watch?v=pXIE6rA3x2Q&list=PLc044q4oRJJw&pp=sAgC)** — a full narrated series produced entirely through this pipeline: **18 films** (an intro + 17 chapters) across two movements. Each film was authored as a markdown chapter, narrated with edge-tts (Andrew voice, Mode 1), storyboarded shot-by-shot, and rendered as timed `ken_burns` stills (SDXL) with Wan 2.2 i2v motion where it counted — then stitched and muxed by `simple_reel.exe`.
+
+▶ **Watch the playlist:** https://www.youtube.com/watch?v=pXIE6rA3x2Q&list=PLc044q4oRJJw&pp=sAgC
+
 ## Features
 
 - **Storyboard-driven render**: one `storyboard.json` describes every shot; the engine renders and stitches them in order, resuming from `manifest.json`.
