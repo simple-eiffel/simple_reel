@@ -19,9 +19,9 @@ Part of the [Simple Eiffel](https://github.com/simple-eiffel) ecosystem.
 
 ## Examples — films made with simple_reel
 
-**[NOUS — Finding the Mind of Christ](https://www.youtube.com/watch?v=pXIE6rA3x2Q&list=PLc044q4oRJJw&pp=sAgC)** — a full narrated series produced entirely through this pipeline: **18 films** (an intro + 17 chapters) across two movements. Each film was authored as a markdown chapter, narrated with edge-tts (Andrew voice, Mode 1), storyboarded shot-by-shot, and rendered as timed `ken_burns` stills (SDXL) with Wan 2.2 i2v motion where it counted — then stitched and muxed by `simple_reel.exe`.
+**[NOUS — Finding the Mind of Christ](https://www.youtube.com/playlist?list=PLc044q4oRJJw)** — a full narrated series produced entirely through this pipeline: **18 films** (an intro + 17 chapters) across two movements. Each film was authored as a markdown chapter, narrated with edge-tts (Andrew voice, Mode 1), storyboarded shot-by-shot, and rendered as timed `ken_burns` stills (SDXL) with Wan 2.2 i2v motion where it counted — then stitched and muxed by `simple_reel.exe`.
 
-▶ **Watch the playlist:** https://www.youtube.com/watch?v=pXIE6rA3x2Q&list=PLc044q4oRJJw&pp=sAgC
+▶ **Watch the playlist:** https://www.youtube.com/playlist?list=PLc044q4oRJJw
 
 ## Features
 
