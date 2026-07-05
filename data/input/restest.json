@@ -1,0 +1,13 @@
+{
+  "reel": "_restest",
+  "output_dir": "D:/reels/_restest",
+  "fps": 24,
+  "width": 1280,
+  "height": 704,
+  "shots": [
+    {"id": "s001", "section": "a", "kind": "ken_burns", "motion": "push_in", "duration": 3, "seed": 501,
+     "still_prompt": "a lighthouse on a cliff at sunset, cinematic", "negative": "blurry, low quality, text, watermark"},
+    {"id": "s002", "section": "b", "kind": "ken_burns", "motion": "pan_left", "duration": 3, "seed": 502,
+     "still_prompt": "a misty forest path at dawn, cinematic", "negative": "blurry, low quality, text, watermark"}
+  ]
+}

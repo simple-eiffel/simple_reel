@@ -1,0 +1,27 @@
+{
+  "reel": "test_reel",
+  "fps": 24,
+  "width": 1280,
+  "height": 704,
+  "shots": [
+    {
+      "id": "s01",
+      "section": "Title",
+      "still_prompt": "an ancient scroll in a shaft of dusty light, dark background, cinematic still",
+      "motion_prompt": "the scroll slowly unrolls as dust drifts; slow push-in",
+      "negative": "blurry, low quality, text, watermark",
+      "kind": "video",
+      "duration": 5,
+      "seed": 111
+    },
+    {
+      "id": "s02",
+      "section": "Opening",
+      "still_prompt": "two friends talking over coffee at a rainy cafe window, warm light, cinematic still",
+      "motion_prompt": "they gesture and nod as rain runs down the glass; slow push-in",
+      "negative": "blurry, low quality, text, watermark",
+      "kind": "video",
+      "duration": 4
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<system xmlns="http://www.eiffel.com/developers/xml/configuration-1-23-0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.eiffel.com/developers/xml/configuration-1-23-0 http://www.eiffel.com/developers/xml/configuration-1-23-0.xsd" name="simple_reel" uuid="6C1F2E7A-9B3D-4A85-B0E1-7F2C4D6A8B90" library_target="simple_reel">
+	<description>Simple Reel - chapter-to-video render orchestrator over ComfyUI</description>
+	<target name="simple_reel">
+		<root all_classes="true"/>
+		<file_rule>
+			<exclude>/EIFGENs$</exclude>
+			<exclude>/\..*$</exclude>
+		</file_rule>
+		<option warning="warning">
+			<assertions precondition="true" postcondition="true" check="true" invariant="true" loop="true" supplier_precondition="true"/>
+		</option>
+		<setting name="console_application" value="true"/>
+		<setting name="dead_code_removal" value="feature"/>
+		<capability>
+			<concurrency support="scoop" use="thread"/>
+			<void_safety support="all"/>
+		</capability>
+		<library name="base" location="$ISE_LIBRARY\library\base\base.ecf"/>
+		<library name="simple_logger" location="$SIMPLE_EIFFEL/simple_logger/simple_logger.ecf"/>
+		<library name="simple_http" location="$SIMPLE_EIFFEL/simple_http/simple_http.ecf"/>
+		<library name="simple_json" location="$SIMPLE_EIFFEL/simple_json/simple_json.ecf"/>
+		<library name="simple_process" location="$SIMPLE_EIFFEL/simple_process/simple_process.ecf"/>
+		<library name="simple_file" location="$SIMPLE_EIFFEL/simple_file/simple_file.ecf"/>
+		<library name="simple_datetime" location="$SIMPLE_EIFFEL/simple_datetime/simple_datetime.ecf"/>
+		<cluster name="src" location=".\src\" recursive="true"/>
+	</target>
+	<target name="simple_reel_tests" extends="simple_reel">
+		<root class="TEST_APP" feature="make"/>
+		<option warning="warning">
+			<assertions precondition="true" postcondition="true" check="true" invariant="true" loop="true" supplier_precondition="true"/>
+		</option>
+		<setting name="console_application" value="true"/>
+		<cluster name="tests" location=".\testing\" recursive="true"/>
+	</target>
+	<target name="simple_reel_app" extends="simple_reel">
+		<root class="REEL_APP" feature="make"/>
+		<option warning="warning">
+			<assertions precondition="true" postcondition="true" check="true" invariant="true" loop="true" supplier_precondition="true"/>
+		</option>
+		<setting name="console_application" value="true"/>
+		<setting name="executable_name" value="simple_reel"/>
+		<cluster name="app" location=".\app\" recursive="true"/>
+	</target>
+</system>

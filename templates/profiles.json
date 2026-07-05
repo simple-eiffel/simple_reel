@@ -1,0 +1,5 @@
+{
+  "default": "sd_xl_base_1.0.safetensors",
+  "photo": "sd_xl_base_1.0.safetensors",
+  "anime": "animagine-xl-4.0.safetensors"
+}

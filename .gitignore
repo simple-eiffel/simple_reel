@@ -1,0 +1,12 @@
+# Eiffel build artifacts (ecosystem standard)
+EIFGENs/
+*.melted
+*.epr
+*.log
+
+# Built executables (rebuild from source; ship via GitHub Releases)
+bin/
+
+# Generated media and scratch (large; produced at render time)
+data/output/
+data/tmp/

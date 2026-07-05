@@ -1,0 +1,17 @@
+{
+  "reel": "mini_test",
+  "fps": 24,
+  "width": 1280,
+  "height": 704,
+  "shots": [
+    {"id": "m1", "section": "A", "kind": "ken_burns", "motion": "push_in", "duration": 3, "seed": 201,
+     "still_prompt": "a lighthouse on a rocky cliff at sunset, dramatic sky, cinematic still",
+     "negative": "blurry, low quality, text, watermark, cartoon"},
+    {"id": "m2", "section": "B", "kind": "ken_burns", "motion": "pan_left", "duration": 3, "seed": 202,
+     "still_prompt": "a quiet forest path in morning mist, soft light, cinematic still",
+     "negative": "blurry, low quality, text, watermark, cartoon"},
+    {"id": "m3", "section": "C", "kind": "ken_burns", "motion": "push_out", "duration": 3, "seed": 203,
+     "still_prompt": "a lone rowboat on a still lake at dawn, reflections, cinematic still",
+     "negative": "blurry, low quality, text, watermark, cartoon"}
+  ]
+}
