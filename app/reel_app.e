@@ -164,7 +164,7 @@ feature {NONE} -- Modes
 			-- Pipeline wired with templates, profiles and tool paths; Void (with a
 			-- message printed) when the core templates are missing.
 		local
-			l_still, l_video, l_ref: MODEL_PROFILE
+			l_still, l_video, l_ref, l_talk: MODEL_PROFILE
 		do
 			create l_still.make_from_file ("sdxl_still", app_root + "\templates\sdxl_still.json")
 			create l_video.make_from_file ("wan_i2v", app_root + "\templates\wan_i2v.json")
@@ -175,6 +175,10 @@ feature {NONE} -- Modes
 				create l_ref.make_from_file ("sdxl_still_ref", app_root + "\templates\sdxl_still_ref.json")
 				if l_ref.is_loaded then
 					Result.set_ref_still_profile (l_ref)
+				end
+				create l_talk.make_from_file ("wan_s2v", app_root + "\templates\wan_s2v.json")
+				if l_talk.is_loaded then
+					Result.set_talking_profile (l_talk)
 				end
 			else
 				io.put_string ("template(s) missing under " + app_root + "\templates%N")

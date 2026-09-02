@@ -71,6 +71,18 @@ feature -- Checks
 				file_exists (app_root + "\templates\wan_i2v.json")
 		end
 
+	has_s2v: BOOLEAN
+			-- Is the sound-to-video stack installed -- template, GGUF weights, the
+			-- wav2vec2 audio encoder, the 2.1 VAE and the GGUF loader node? Talking
+			-- shots silently skip without all five, so check them together.
+		do
+			Result := file_exists (app_root + "\templates\wan_s2v.json") and then
+				file_exists (comfy_dir + "\ComfyUI\models\diffusion_models\Wan2.2-S2V-14B-Q4_K_S.gguf") and then
+				file_exists (comfy_dir + "\ComfyUI\models\audio_encoders\wav2vec2_large_english_fp16.safetensors") and then
+				file_exists (comfy_dir + "\ComfyUI\models\vae\wan_2.1_vae.safetensors") and then
+				file_exists (comfy_dir + "\ComfyUI\custom_nodes\ComfyUI-GGUF\nodes.py")
+		end
+
 	has_comfy_install: BOOLEAN
 			-- Is the ComfyUI portable install (embedded python) where we expect it?
 		do
@@ -116,6 +128,7 @@ feature -- Report
 			line (client.is_up, "ComfyUI server at " + client.base_url)
 			line (has_edge_tts, "python + edge-tts (timing.py only)")
 			line (has_resvg, "resvg at tools\resvg.exe (svg shots only)")
+			line (has_s2v, "Wan S2V + wav2vec2 + GGUF node (talking shots only)")
 			line (has_manim, "python + manim (manim shots only)")
 			line (has_blender, "Blender at " + blender_exe + " (blender shots only)")
 			if is_render_ready then

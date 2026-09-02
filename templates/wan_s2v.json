@@ -1,0 +1,17 @@
+{
+  "37": {"class_type": "UnetLoaderGGUF", "inputs": {"unet_name": "Wan2.2-S2V-14B-Q4_K_S.gguf"}},
+  "38": {"class_type": "CLIPLoader", "inputs": {"clip_name": "umt5_xxl_fp8_e4m3fn_scaled.safetensors", "type": "wan", "device": "default"}},
+  "39": {"class_type": "VAELoader", "inputs": {"vae_name": "wan_2.1_vae.safetensors"}},
+  "40": {"class_type": "AudioEncoderLoader", "inputs": {"audio_encoder_name": "wav2vec2_large_english_fp16.safetensors"}},
+  "41": {"class_type": "LoadAudio", "inputs": {"audio": "%AUDIO%"}},
+  "42": {"class_type": "AudioEncoderEncode", "inputs": {"audio_encoder": ["40", 0], "audio": ["41", 0]}},
+  "6": {"class_type": "CLIPTextEncode", "inputs": {"text": "%POSITIVE%", "clip": ["38", 0]}},
+  "7": {"class_type": "CLIPTextEncode", "inputs": {"text": "%NEGATIVE%", "clip": ["38", 0]}},
+  "56": {"class_type": "LoadImage", "inputs": {"image": "%IMAGE%"}},
+  "55": {"class_type": "WanSoundImageToVideo", "inputs": {"positive": ["6", 0], "negative": ["7", 0], "vae": ["39", 0], "width": %WIDTH%, "height": %HEIGHT%, "length": %LENGTH%, "batch_size": 1, "audio_encoder_output": ["42", 0], "ref_image": ["56", 0]}},
+  "48": {"class_type": "ModelSamplingSD3", "inputs": {"shift": 8.0, "model": ["37", 0]}},
+  "3": {"class_type": "KSampler", "inputs": {"seed": %SEED%, "steps": %STEPS%, "cfg": 6.0, "sampler_name": "uni_pc", "scheduler": "simple", "denoise": 1.0, "model": ["48", 0], "positive": ["55", 0], "negative": ["55", 1], "latent_image": ["55", 2]}},
+  "8": {"class_type": "VAEDecode", "inputs": {"samples": ["3", 0], "vae": ["39", 0]}},
+  "57": {"class_type": "CreateVideo", "inputs": {"fps": %FPS%, "bit_depth": 8, "images": ["8", 0]}},
+  "58": {"class_type": "SaveVideo", "inputs": {"filename_prefix": "%PREFIX%", "format": "auto", "codec": "auto", "video": ["57", 0]}}
+}

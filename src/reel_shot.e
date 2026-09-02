@@ -4,11 +4,15 @@ note
 			- "video"      : still -> Wan image-to-video (motion_prompt), for key beats
 			- "ken_burns"  : still -> ffmpeg pan/zoom (`motion'), cheap and fast
 			- "still"      : the still frame only
+			- "talking"    : portrait + `audio' -> Wan sound-to-video (lip-synced
+			                 presenter cut-in); the portrait is `ref_image', a real
+			                 photo, so no diffusion still is rendered
 			- "manim"      : a Claude-authored Manim scene script -> clip (no still)
 			- "blender"    : a Claude-authored bpy script -> frames -> clip (no still)
 		For the still-based kinds the still comes from diffusion (`still_prompt',
 		checkpoint chosen by `profile') -- unless `svg' names an SVG file, which is
-		rasterized into the still slot instead (crisp text/diagrams).
+		rasterized into the still slot instead (crisp text/diagrams), or the shot is
+		a "talking" shot carrying a `ref_image' portrait.
 	]"
 	author: "Larry Rix"
 
@@ -35,6 +39,7 @@ feature {NONE} -- Initialization
 			create svg_file.make_empty
 			create script.make_empty
 			create ref_image.make_empty
+			create audio_file.make_empty
 			ref_weight := Default_ref_weight
 			kind := "ken_burns"
 			motion := "push_in"
@@ -57,6 +62,7 @@ feature {NONE} -- Initialization
 			svg_file := text (a_obj, "svg")
 			script := text (a_obj, "script")
 			ref_image := text (a_obj, "ref_image")
+			audio_file := text (a_obj, "audio")
 			if a_obj.has_key (key ("ref_weight")) then
 				ref_weight := a_obj.real_item (key ("ref_weight"))
 			end
@@ -126,8 +132,13 @@ feature -- Access
 			-- but bleeds the reference's background/pose into the scene; ~0.5-0.6
 			-- keeps the scene while holding the character. Default 0.55.
 
+	audio_file: STRING
+			-- Narration slice driving a "talking" shot's lip-sync ("" = none).
+			-- Relative paths resolve against the storyboard's output_dir. Cut these
+			-- from the reel's narration mp3 with `slice_audio.py'.
+
 	kind: STRING
-			-- "video", "ken_burns", "still", "manim", or "blender".
+			-- "video", "ken_burns", "still", "talking", "manim", or "blender".
 
 	motion: STRING
 			-- Ken Burns move: push_in, push_out, pan_left, pan_right, pan_up, pan_down.
@@ -158,6 +169,26 @@ feature -- Status
 			Result := kind.is_case_insensitive_equal ("still")
 		end
 
+	is_talking: BOOLEAN
+			-- Lip-sync a portrait to `audio_file' via Wan sound-to-video?
+		do
+			Result := kind.is_case_insensitive_equal ("talking") or
+				kind.is_case_insensitive_equal ("s2v")
+		end
+
+	has_portrait: BOOLEAN
+			-- Does a real photo (`ref_image') supply the S2V reference frame,
+			-- standing in for a diffusion still?
+		do
+			Result := is_talking and then not ref_image.is_empty
+		end
+
+	has_audio: BOOLEAN
+			-- Is a narration slice named for the lip-sync pass?
+		do
+			Result := not audio_file.is_empty
+		end
+
 	is_manim: BOOLEAN
 			-- Produce the clip by running a Manim scene script?
 		do
@@ -185,7 +216,7 @@ feature -- Status
 	needs_diffusion_still: BOOLEAN
 			-- Does this shot need a diffusion-rendered still?
 		do
-			Result := not is_scripted and then not has_svg
+			Result := not is_scripted and then not has_svg and then not has_portrait
 		end
 
 	has_seed: BOOLEAN
@@ -238,6 +269,7 @@ invariant
 	svg_file_attached: svg_file /= Void
 	script_attached: script /= Void
 	ref_image_attached: ref_image /= Void
+	audio_file_attached: audio_file /= Void
 	ref_weight_in_range: ref_weight > 0.0 and ref_weight <= 1.0
 	kind_attached: kind /= Void
 	motion_attached: motion /= Void

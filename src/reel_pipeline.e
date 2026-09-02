@@ -63,6 +63,10 @@ feature -- Access
 			-- IP-Adapter still template (identity-anchored stills); Void when the
 			-- template or the IP-Adapter models are not installed.
 
+	talking_profile: detachable MODEL_PROFILE
+			-- Wan sound-to-video template (lip-synced presenter shots); Void when
+			-- the template or the S2V/wav2vec2 models are not installed.
+
 feature -- Settings
 
 	set_comfy_input_dir (a_dir: STRING)
@@ -84,6 +88,10 @@ feature -- Settings
 	set_ref_still_profile (a_profile: MODEL_PROFILE)
 		require loaded: a_profile.is_loaded
 		do ref_still_profile := a_profile end
+
+	set_talking_profile (a_profile: MODEL_PROFILE)
+		require loaded: a_profile.is_loaded
+		do talking_profile := a_profile end
 
 	load_profiles (a_path: STRING)
 			-- Load the profile -> checkpoint map from the JSON object at `a_path'.
@@ -176,6 +184,13 @@ feature -- Run
 						if attached l_name as nm then
 							l_names.put (nm, l_shot.id)
 						end
+					elseif l_shot.has_portrait then
+						l_s := l_s + 1
+						say ("[still " + l_s.out + "/" + l_stills.out + "] " + l_shot.id + " (" + l_shot.section + ") portrait ... ")
+						l_name := stage_portrait (l_shot, l_out_dir)
+						if attached l_name as nm then
+							l_names.put (nm, l_shot.id)
+						end
 					end
 					k := k + 1
 				end
@@ -229,6 +244,8 @@ feature -- Run
 							process_manim (l_shot, l_out_dir)
 						elseif l_shot.is_blender then
 							process_blender (l_shot, l_out_dir)
+						elseif l_shot.is_talking and then attached l_names.item (l_shot.id) as img then
+							process_talking (l_shot, img, seed_for (l_shot, k), l_out_dir)
 						elseif l_shot.is_video and then attached l_names.item (l_shot.id) as img then
 							process_video (l_shot, img, seed_for (l_shot, k), l_out_dir)
 						elseif l_shot.is_ken_burns then
@@ -420,6 +437,129 @@ feature {NONE} -- Scene stages
 				end
 			else
 				say ("FAIL i2v: " + client.last_error + "%N")
+			end
+		end
+
+	stage_portrait (a_shot: REEL_SHOT; a_out_dir: STRING): detachable STRING
+			-- Copy the shot's `ref_image' photo into its still slot and into ComfyUI
+			-- input/ so Wan S2V can use it as the reference frame. No diffusion, no
+			-- IP-Adapter: for a talking shot the photo *is* the subject, not a hint.
+			-- Returns the input-relative filename, or Void.
+		require
+			has_portrait: a_shot.has_portrait
+		local
+			l_proc: SIMPLE_PROCESS
+			l_src, l_png, l_input_name: STRING
+			l_file: SIMPLE_FILE
+			t0: INTEGER
+		do
+			t0 := now_secs
+			l_src := resolve (a_shot.ref_image, a_out_dir)
+			create l_file.make (native (l_src))
+			if not l_file.exists then
+				say ("FAIL portrait not found: " + l_src + "%N")
+			else
+				l_png := a_out_dir + "/" + a_shot.id + "_still.png"
+				create l_proc.make
+				l_proc.execute ("cmd /c copy /Y %"" + native (l_src) + "%" %"" + native (l_png) + "%"")
+				create l_file.make (native (l_png))
+				if l_file.exists then
+					l_input_name := "reel_" + a_shot.id + "_still.png"
+					create l_proc.make
+					l_proc.execute ("cmd /c copy /Y %"" + native (l_png) + "%" %"" +
+						native (comfy_input_dir + "/" + l_input_name) + "%"")
+					Result := l_input_name
+					say ("OK " + fmt (elapsed (t0)) + " -> " + a_shot.id + "_still.png%N")
+				else
+					say ("FAIL portrait copy%N")
+				end
+			end
+		end
+
+	process_talking (a_shot: REEL_SHOT; a_image: STRING; a_seed: INTEGER; a_out_dir: STRING)
+			-- Wan sound-to-video: lip-sync the portrait to the shot's narration
+			-- slice, then 4K upscale. The clip carries no audio track -- `assemble'
+			-- muxes the reel's full narration over the finished cut, exactly as it
+			-- does for every other kind.
+		local
+			l_bind: HASH_TABLE [STRING, STRING]
+			l_pid: detachable STRING
+			l_files: ARRAYED_LIST [COMFY_OUTPUT_FILE]
+			l_clip, l_audio_name: STRING
+			l_positive: STRING
+			t0: INTEGER
+		do
+			if not attached talking_profile as prof then
+				say ("  SKIP talking: templates\wan_s2v.json not loaded%N")
+			elseif not a_shot.has_audio then
+				say ("  SKIP talking: shot has no %"audio%" slice%N")
+			elseif not attached stage_audio (a_shot, a_out_dir) as an then
+				say ("  SKIP talking: audio slice not found%N")
+			else
+				l_audio_name := an
+				t0 := now_secs
+				say ("  talking ... (wan s2v, this takes minutes) ")
+				l_positive := a_shot.motion_prompt
+				if l_positive.is_empty then
+					l_positive := a_shot.still_prompt
+				end
+				create l_bind.make (12)
+				l_bind.put (l_positive, "POSITIVE")
+				l_bind.put (a_shot.negative, "NEGATIVE")
+				l_bind.put (a_image, "IMAGE")
+				l_bind.put (l_audio_name, "AUDIO")
+				l_bind.put (cur_width.out, "WIDTH")
+				l_bind.put (cur_height.out, "HEIGHT")
+				l_bind.put ((a_shot.duration * cur_fps + 1).out, "LENGTH")
+				l_bind.put (a_seed.out, "SEED")
+				l_bind.put (video_steps, "STEPS")
+				l_bind.put (cur_fps.out, "FPS")
+				l_bind.put ("reel_" + a_shot.id, "PREFIX")
+				l_pid := client.submit_prompt (prof.render (l_bind))
+				if attached l_pid as lp and then client.wait_for (lp, 3600) then
+					l_files := client.output_files (lp)
+					if not l_files.is_empty then
+						l_clip := a_out_dir + "/" + a_shot.id + ".mp4"
+						if client.fetch_file (l_files.first, l_clip) then
+							say ("OK " + fmt (elapsed (t0)) + " -> " + a_shot.id + ".mp4%N")
+							upscale_clip (l_clip)
+						else
+							say ("FAIL fetch clip%N")
+						end
+					end
+				else
+					say ("FAIL s2v: " + client.last_error + "%N")
+				end
+			end
+		end
+
+	stage_audio (a_shot: REEL_SHOT; a_out_dir: STRING): detachable STRING
+			-- Copy the shot's narration slice into ComfyUI input/ (LoadAudio reads
+			-- only from there). Returns the input-relative filename, or Void.
+		require
+			has_audio: a_shot.has_audio
+		local
+			l_proc: SIMPLE_PROCESS
+			l_src, l_input_name, l_ext: STRING
+			l_file: SIMPLE_FILE
+			i: INTEGER
+		do
+			l_src := resolve (a_shot.audio_file, a_out_dir)
+			create l_file.make (native (l_src))
+			if l_file.exists then
+				l_ext := "wav"
+				i := a_shot.audio_file.last_index_of ('.', a_shot.audio_file.count)
+				if i > 0 and then i < a_shot.audio_file.count then
+					l_ext := a_shot.audio_file.substring (i + 1, a_shot.audio_file.count)
+				end
+				l_input_name := "reel_" + a_shot.id + "_audio." + l_ext
+				create l_proc.make
+				l_proc.execute ("cmd /c copy /Y %"" + native (l_src) + "%" %"" +
+					native (comfy_input_dir + "/" + l_input_name) + "%"")
+				create l_file.make (native (comfy_input_dir + "/" + l_input_name))
+				if l_file.exists then
+					Result := l_input_name
+				end
 			end
 		end
 

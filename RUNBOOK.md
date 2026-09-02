@@ -29,6 +29,7 @@ temp files resolve against it, so the exe works from any current directory.
 | `bin\simple_reel.exe` | Larry (or Claude) | render scenes, assemble the film, character sheets, preflight/startup |
 | `timing.py` | Larry/Claude, system python | narration.json → mp3 + timing.json + srt (needs `pip install edge-tts`, ffmpeg) |
 | `make_storyboard.py` | optional | scaffold a drift-free storyboard.json from timing.json + prompts.json |
+| `slice_audio.py` | when the reel has `talking` shots | narration mp3 + storyboard → per-shot wav slices, stamps `audio` fields back in |
 | `resmooth.py` | optional | regenerate ken_burns clips from existing stills (no GPU), then re-run assemble |
 | `D:\AI\upscale_video_4k.py` | called **by the exe** | 4K pass on Wan video clips (via ComfyUI's embedded python) |
 | `tools\resvg.exe` | called **by the exe** | rasterize `svg:` shot stills (crisp on-frame text) |
@@ -40,7 +41,7 @@ It invokes the 4K upscaler (per video shot), resvg, Manim and Blender itself.
 
 ### Shot kinds and sources (v0.3, contracts in `docs/STYLE_GUIDES.md`)
 
-- `kind`: `ken_burns` | `video` (Wan i2v) | `still` | `manim` (scene .py) | `blender` (bpy .py)
+- `kind`: `ken_burns` | `video` (Wan i2v) | `talking` (Wan S2V) | `still` | `manim` (scene .py) | `blender` (bpy .py)
 - **Still source**: diffusion `still_prompt` (checkpoint chosen by `profile` —
   reel-level or per-shot; map in `templates/profiles.json`: `default`/`photo` = SDXL,
   `anime` = Animagine XL 4.0) **or** `svg: <file>` rasterized by resvg.
@@ -54,6 +55,51 @@ It invokes the 4K upscaler (per video shot), resvg, Manim and Blender itself.
   / expression / pose sheet** — see [Character sheets](#character-sheets--multi-angle-expression-pose) below.
 - Diffusion stills render **grouped by checkpoint** (each model loads once); pure
   SVG/manim/blender reels don't need ComfyUI at all.
+
+### Talking shots — a lip-synced presenter cut-in (`kind: talking`)
+
+A `talking` shot puts a **real photo of a real person** on screen and lip-syncs it to
+that stretch of the narration, via Wan 2.2 sound-to-video. Use it sparingly — an
+opening address, a turn in the argument, a closing charge — and let the illustrative
+`ken_burns` scenes carry the rest. It is the most expensive kind per second.
+
+Unlike every other still-based kind, a talking shot runs **no diffusion**: its
+`ref_image` is used directly as the reference frame (the photo *is* the subject, not
+an IP-Adapter hint), so `still_prompt` and `profile` are ignored.
+
+**Authoring**
+
+```json
+{ "id": "s004", "section": "open", "kind": "talking", "duration": 8, "seed": 404,
+  "ref_image": "portrait/larry_front.png",
+  "audio": "audio/s004.wav",
+  "narration": "the words spoken during this scene",
+  "motion_prompt": "a man speaking directly to camera, warm study lighting, subtle head movement",
+  "negative": "blurry, distorted, extra limbs, deformed hands, text, watermark" }
+```
+
+- **`ref_image`** — a clean, front-facing, well-lit head-and-shoulders photo, sized to
+  the reel's `width`×`height`. One good frame beats a dozen mediocre ones; identity
+  drift in the output almost always traces back to a soft or oddly-lit reference.
+- **`audio`** — the narration slice for exactly this shot. Don't cut these by hand:
+
+  ```
+  python D:\prod\simple_reel\slice_audio.py "<output_dir>\storyboard.json" "<output_dir>\<reel>.mp3"
+  ```
+
+  It walks the shots, cuts 16 kHz mono wavs for each talking shot into
+  `<output_dir>/audio/`, and stamps the `audio` field back into the storyboard.
+  **Run it after Step 2 and before Step 4** — the render skips any talking shot whose
+  slice is missing, and says so.
+- **`motion_prompt`** carries the scene description (falls back to `still_prompt` if empty).
+- Keep talking shots **short — 5–10 s**. S2V generates `duration × fps + 1` frames in one
+  pass; long shots multiply both VRAM pressure and wall-clock.
+
+The clip is emitted **without an audio track**, exactly like every other kind — `assemble`
+muxes the reel's full narration over the finished cut, so nothing double-tracks.
+
+**Check the stack is installed** before authoring a reel that uses it:
+`simple_reel status` → `Wan S2V + wav2vec2 + GGUF node (talking shots only)`.
 
 ### Character sheets — multi-angle, expression, pose
 
