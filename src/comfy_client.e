@@ -114,8 +114,10 @@ feature -- Submission
 			l_body_file.close
 
 			create l_proc.make
-			l_out := l_proc.command_output ("curl -s -X POST -H %"Content-Type: application/json%" --data-binary %"@" +
-				l_body_path + "%" %"" + base_url + "/prompt%"").to_string_8
+				-- UTF-8 bytes: simple_process 1.1.0 decodes the output, which
+				-- `to_string_8' could not always narrow.
+			l_out := {UTF_CONVERTER}.string_32_to_utf_8_string_8 (l_proc.command_output ("curl -s -X POST -H %"Content-Type: application/json%" --data-binary %"@" +
+				l_body_path + "%" %"" + base_url + "/prompt%""))
 			if l_proc.was_successful and then not l_out.is_empty then
 				create l_json
 				if attached l_json.parse (l_out.to_string_32) as parsed and then
