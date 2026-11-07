@@ -197,7 +197,7 @@ feature {NONE} -- Implementation
 		do
 			create l_proc.make
 			l_proc.execute (a_command)
-			Result := l_proc.was_successful
+			Result := l_proc.was_successful and then l_proc.last_exit_code = 0
 		end
 
 	file_exists (a_path: STRING): BOOLEAN
