@@ -619,13 +619,13 @@ feature {NONE} -- Scene stages
 			l_out := l_proc.command_output (python_cmd + " -m manim render -a -q h --fps " + cur_fps.out +
 				" -r " + cur_width.out + "," + cur_height.out +
 				" --media_dir %"" + native (l_media) + "%" %"" + native (l_script) + "%"")
-			if l_proc.was_successful then
+			if l_proc.was_successful and then l_proc.last_exit_code = 0 then
 				l_found := find_first_mp4 (l_media)
 				if not l_found.is_empty then
 					l_clip := a_out_dir + "/" + a_shot.id + ".mp4"
 					create l_proc.make
 					l_proc.execute ("cmd /c copy /Y %"" + native (l_found) + "%" %"" + native (l_clip) + "%"")
-					if l_proc.was_successful then
+					if l_proc.was_successful and then l_proc.last_exit_code = 0 then
 						say ("OK " + fmt (elapsed (t0)) + " -> " + a_shot.id + ".mp4%N")
 					else
 						say ("FAIL copying manim clip%N")
@@ -660,12 +660,12 @@ feature {NONE} -- Scene stages
 			l_out := l_proc.command_output ("%"" + blender_exe + "%" -b --factory-startup -P %"" +
 				native (l_script) + "%" -- %"" + native (l_frames) + "%" " +
 				cur_width.out + " " + cur_height.out + " " + cur_fps.out + " " + a_shot.duration.out)
-			if l_proc.was_successful then
+			if l_proc.was_successful and then l_proc.last_exit_code = 0 then
 				l_clip := a_out_dir + "/" + a_shot.id + ".mp4"
 				create l_proc.make
 				l_proc.execute ("ffmpeg -y -framerate " + cur_fps.out + " -i %"" + l_frames +
 					"/f_%%04d.png%" -c:v libx264 -pix_fmt yuv420p -crf 18 %"" + l_clip + "%"")
-				if l_proc.was_successful then
+				if l_proc.was_successful and then l_proc.last_exit_code = 0 then
 					say ("OK " + fmt (elapsed (t0)) + " -> " + a_shot.id + ".mp4%N")
 				else
 					say ("FAIL encoding frames (exit " + l_proc.last_exit_code.out + ")%N")
@@ -688,7 +688,7 @@ feature {NONE} -- Scene stages
 			l_out := a_out_dir + "/" + a_shot.id + ".mp4"
 			create l_proc.make
 			l_proc.execute (ken_burns_command (l_in, l_out, a_shot.motion, a_shot.duration))
-			if l_proc.was_successful then
+			if l_proc.was_successful and then l_proc.last_exit_code = 0 then
 				say ("OK " + fmt (elapsed (t0)) + " -> " + a_shot.id + ".mp4%N")
 			else
 				say ("FAIL ffmpeg (exit " + l_proc.last_exit_code.out + ")%N")
@@ -705,7 +705,7 @@ feature {NONE} -- Scene stages
 			say ("  4K     ... ")
 			create l_proc.make
 			l_proc.execute ("%"" + python_exe + "%" %"" + upscaler_script + "%" %"" + a_clip + "%"")
-			if l_proc.was_successful then
+			if l_proc.was_successful and then l_proc.last_exit_code = 0 then
 				say ("OK " + fmt (elapsed (t0)) + "%N")
 			else
 				say ("SKIP (upscale failed)%N")
