@@ -11,6 +11,8 @@ narration timing file into a captioned film whose visuals are timed to the spoke
 word. An Eiffel console app that drives ComfyUI (Wan 2.2 i2v + SDXL stills), ffmpeg,
 edge-tts, resvg, Manim and Blender from a single storyboard.
 
+> **Windows only.** It drives Windows builds of ComfyUI, ffmpeg and its other tools. There is no macOS or Linux version, and none is planned.
+
 Part of the [Simple Eiffel](https://github.com/simple-eiffel) ecosystem.
 
 ## Status
