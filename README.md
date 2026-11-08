@@ -5,6 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Eiffel](https://img.shields.io/badge/Eiffel-25.02-blue.svg)](https://www.eiffel.org/)
 [![Design by Contract](https://img.shields.io/badge/DbC-enforced-orange.svg)]()
+![Windows only](https://img.shields.io/badge/platform-Windows%20only-0078D6?logo=windows&logoColor=white)
 
 Chapter-to-video render orchestrator for Eiffel — turns a markdown source and a
 narration timing file into a captioned film whose visuals are timed to the spoken
