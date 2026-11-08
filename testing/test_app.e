@@ -21,6 +21,7 @@ feature {NONE} -- Initialization
 			test_extended_shot_fields
 			test_comfy
 			test_profile
+			test_doctor_exit_codes
 			print ("%N========================%N")
 			print ("Results: " + passed.out + " passed, " + failed.out + " failed%N")
 			if failed > 0 then
@@ -34,6 +35,22 @@ feature {NONE} -- State
 
 	passed: INTEGER
 	failed: INTEGER
+
+feature {NONE} -- Doctor
+
+	test_doctor_exit_codes
+			-- A command that runs but exits non-zero, or cannot start, is not "ok".
+			-- Before the fix, `runs_ok' read only `was_successful', which is True
+			-- for any command that started, whatever its exit code.
+		local
+			l_doctor: REEL_DOCTOR_PROBE
+		do
+			print ("--- doctor exit codes%N")
+			create l_doctor.make (".")
+			check_that ("exit 0 runs ok", l_doctor.command_runs_ok ("cmd /c exit 0"))
+			check_that ("exit 3 does not run ok", not l_doctor.command_runs_ok ("cmd /c exit 3"))
+			check_that ("missing program does not run ok", not l_doctor.command_runs_ok ("no_such_program_reel_probe.exe"))
+		end
 
 feature {NONE} -- Assertions
 
